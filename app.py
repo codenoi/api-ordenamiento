@@ -2,9 +2,10 @@ from flask import Flask, jsonify, request, render_template
 import json
 import time
 import random
+import os
 
 app = Flask(__name__)
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def quicksort(items, clave, reverse=False):
     # Caso base: una lista de 0 o 1 elementos 
@@ -71,7 +72,7 @@ def index():
 
 @app.route('/api/productos')
 def get_productos():
-    with open('productos.json', encoding='utf-8') as f:
+    with open(os.path.join(BASE_DIR, 'productos.json'), encoding='utf-8') as f:
         productos = json.load(f)
 
     sort_by = request.args.get('sort_by', 'precio')
@@ -92,7 +93,7 @@ def buscar_producto():
     except (TypeError, ValueError):
         return jsonify({"error": "Debes indicar un id numérico, por ejemplo ?id=5"}), 400
 
-    with open('productos.json', encoding='utf-8') as f:
+    with open(os.path.join(BASE_DIR, 'productos.json'), encoding='utf-8') as f:
         productos = json.load(f)
 
     # Precondición: la lista debe estar ordenada por id
