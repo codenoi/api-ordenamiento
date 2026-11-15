@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo de Productos - LPII</title>
+<style>
+  :root {
+    --fondo: #0f172a;
+    --tarjeta: #1e293b;
+    --borde: #334155;
+    --texto: #f8fafc;
+    --suave: #94a3b8;
+    --azul: #3b82f6;
+    --violeta: #8b5cf6;
+    --verde: #22c55e;
+    --rojo: #ef4444;
+    --naranja: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 32px 16px 60px;
+    color: var(--texto);
+    background: radial-gradient(circle at top, #1e3a8a 0%, var(--fondo) 45%);
+    min-height: 100vh;
+  }
+  .contenedor { max-width: 900px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 32px; }
+  h1 {
+    font-size: 2.2rem;
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, var(--azul), var(--violeta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p { color: var(--suave); margin: 0; }
+
+  .tarjeta {
+    background: var(--tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  .tarjeta h2 { margin: 0 0 4px; font-size: 1.25rem; }
+  .tarjeta .desc { color: var(--suave); font-size: 0.9rem; margin: 0 0 16px; }
+
+  .botones { display: flex; flex-wrap: wrap; gap: 8px; }
+  button {
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: transform 0.15s, background 0.15s;
+  }
+  button:hover { transform: translateY(-2px); background: #2563eb; }
+  button.activo { background: var(--violeta); }
+  button.secundario { background: var(--naranja); color: #1e293b; font-weight: 600; }
+  button.secundario:hover { background: #d97706; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--borde); }
+  th { color: var(--suave); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  tbody tr { transition: background 0.2s; }
+  tbody tr:hover { background: rgba(59, 130, 246, 0.12); }
+  tr.resaltada { background: rgba(34, 197, 94, 0.25); }
+  td.precio { color: var(--verde); font-weight: 600; }
+
+  .buscador { display: flex; gap: 8px; flex-wrap: wrap; }
+  input {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    background: var(--fondo);
+    color: var(--texto);
+    font-size: 1rem;
+  }
+  input:focus { outline: 2px solid var(--azul); }
+
+  .resultado {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    display: none;
+  }
+  .resultado.ok { display: block; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--verde); }
+  .resultado.error { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--rojo); }
+
+  .barra-fila { margin-top: 16px; }
+  .barra-fila .etiqueta { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px; }
+  .barra-fondo { background: var(--fondo); border-radius: 999px; height: 16px; overflow: hidden; }
+  .barra { height: 100%; border-radius: 999px; width: 0; transition: width 0.8s ease; }
+  .barra.quick { background: linear-gradient(90deg, var(--verde), #4ade80); }
+  .barra.burbuja { background: linear-gradient(90deg, var(--rojo), #f87171); }
+  .veredicto { margin-top: 18px; text-align: center; font-size: 1.1rem; color: var(--suave); }
+  .veredicto strong { color: var(--verde); font-size: 1.4rem; }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 1.6rem; }
+    th, td { padding: 8px 6px; font-size: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <header>
+    <h1>Catálogo Dinámico de Productos</h1>
+    <p>API REST con Flask · Quicksort · Búsqueda Binaria</p>
+  </header>
+
+  <!-- 1. CATÁLOGO -->
+  <section class="tarjeta">
+    <h2>📦 Catálogo ordenado con Quicksort</h2>
+    <p class="desc">Cada botón le pide los datos ya ordenados al backend, sin recargar la página.</p>
+    <div class="botones">
+      <button id="b-precio-asc" onclick="cargar('precio', 'asc')">Menor precio</button>
+      <button id="b-precio-desc" onclick="cargar('precio', 'desc')">Mayor precio</button>
+      <button id="b-nombre-asc" onclick="cargar('nombre', 'asc')">Nombre A-Z</button>
+      <button id="b-nombre-desc" onclick="cargar('nombre', 'desc')">Nombre Z-A</button>
+    </div>
+    <table id="tabla">
+      <thead><tr><th>ID</th><th>Producto</th><th>Precio</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 2. BÚSQUEDA BINARIA -->
+  <section class="tarjeta">
+    <h2>🔍 Búsqueda binaria por ID</h2>
+    <p class="desc">El backend ordena por ID y busca dividiendo la lista a la mitad en cada paso.</p>
+    <div class="buscador">
+      <input type="number" id="inputId" placeholder="Escribe un ID (ej. 9)" min="1">
+      <button onclick="buscar()">Buscar</button>
+    </div>
+    <div id="resultadoBusqueda" class="resultado"></div>
+  </section>
+
+  <!-- 3. BENCHMARK -->
+  <section class="tarjeta">
+    <h2>⏱️ Benchmark: Quicksort vs Burbuja</h2>
+    <p class="desc">Se ordenan 1.000 productos aleatorios con cada algoritmo y se mide el tiempo.</p>
+    <button class="secundario" onclick="correrBenchmark()">Ejecutar benchmark</button>
+    <div id="zonaBenchmark" style="display:none">
+      <div class="barra-fila">
+        <div class="etiqueta"><span>Quicksort</span><span id="msQuick"></span></div>
+        <div class="barra-fondo"><div id="barraQuick" class="barra quick"></div></div>
+      </div>
+      <div class="barra-fila">
+        <div class="etiqueta"><span>Burbuja</span><span id="msBurbuja"></span></div>
+        <div class="barra-fondo"><div id="barraBurbuja" class="barra burbuja"></div></div>
+      </div>
+      <p class="veredicto" id="veredicto"></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  
+  async function cargar(campo, orden) {
+    const res = await fetch(`/api/productos?sort_by=${campo}&order=${orden}`);
+    const data = await res.json();
+
+    const tbody = document.querySelector('#tabla tbody');
+    tbody.innerHTML = data.map(p =>
+      `<tr id="fila-${p.id}">
+         <td>${p.id}</td>
+         <td>${p.nombre}</td>
+         <td class="precio">$${p.precio.toFixed(2)}</td>
+       </tr>`
+    ).join('');
+
+    // Marcamos como activo el botón que se acaba de usar
+    document.querySelectorAll('.botones button').forEach(b => b.classList.remove('activo'));
+    document.getElementById(`b-${campo}-${orden}`).classList.add('activo');
+  }
+
+  async function buscar() {
+    const id = document.getElementById('inputId').value;
+    const caja = document.getElementById('resultadoBusqueda');
+
+    // Quitamos cualquier resaltado anterior de la tabla
+    document.querySelectorAll('tr.resaltada').forEach(f => f.classList.remove('resaltada'));
+
+    const res = await fetch(`/api/productos/buscar?id=${id}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      caja.className = 'resultado error';
+      caja.textContent = '❌ ' + data.error;
+      return;
+    }
+
+    const p = data.producto;
+    caja.className = 'resultado ok';
+    caja.innerHTML = `✅ <strong>${p.nombre}</strong> · $${p.precio.toFixed(2)}
+                      <br><small>Encontrado en ${data.pasos} paso(s) con búsqueda binaria</small>`;
+
+    // Resaltamos la fila en la tabla, si está visible
+    const fila = document.getElementById(`fila-${p.id}`);
+    if (fila) fila.classList.add('resaltada');
+  }
+
+  // ---------- 3. BENCHMARK ----------
+  async function correrBenchmark() {
+    const zona = document.getElementById('zonaBenchmark');
+    zona.style.display = 'block';
+    document.getElementById('veredicto').textContent = 'Midiendo...';
+
+    const res = await fetch('/api/benchmark?n=1000');
+    const d = await res.json();
+
+    // La burbuja ocupa el 100% de la barra; Quicksort, su proporción (mínimo 2% para que se vea)
+    const porcentajeQuick = Math.max(2, (d.quicksort_ms / d.burbuja_ms) * 100);
+
+    document.getElementById('msQuick').textContent = d.quicksort_ms + ' ms';
+    document.getElementById('msBurbuja').textContent = d.burbuja_ms + ' ms';
+    document.getElementById('barraBurbuja').style.width = '100%';
+    document.getElementById('barraQuick').style.width = porcentajeQuick + '%';
+    document.getElementById('veredicto').innerHTML =
+      `Quicksort fue <strong>${d.veces_mas_rapido}x</strong> más rápido con ${d.elementos} elementos`;
+  }
+
+
+  cargar('precio', 'asc');
+</script>
+</body>
+</html>
